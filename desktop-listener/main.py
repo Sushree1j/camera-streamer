@@ -61,6 +61,7 @@ class ImageSettings:
     contrast: float = 1.0    # 0.0 to 2.0
     saturation: float = 1.0  # 0.0 to 2.0
     filter_type: str = "none"  # none, grayscale, blur, sharpen, edge_enhance
+    rotation: int = 0  # 0, 90, 180, 270 degrees
 
 
 class VideoServer:
@@ -362,11 +363,11 @@ class ViewerApp(tk.Tk):
 
     def _build_ui(self, args: argparse.Namespace) -> None:
         # Main container with light, airy design
-        main_container = ttk.Frame(self, padding="15", style='TFrame')
+        main_container = ttk.Frame(self, padding="10", style='TFrame')
         main_container.pack(fill=tk.BOTH, expand=True)
 
         # Configure grid weights for proper layout - give most space to video
-        main_container.grid_rowconfigure(1, weight=10)  # Video area gets much more space
+        main_container.grid_rowconfigure(1, weight=20)  # Video area gets much more space
         main_container.grid_columnconfigure(0, weight=1)
 
         # Header section - modern design
@@ -383,12 +384,12 @@ class ViewerApp(tk.Tk):
 
     def _build_header(self, args: argparse.Namespace, parent: ttk.Frame) -> None:
         """Build the clean, modern header with connection info"""
-        header_frame = ttk.Frame(parent, style='Header.TFrame', padding=(25, 18))
-        header_frame.grid(row=0, column=0, sticky='ew', pady=(0, 15))
+        header_frame = ttk.Frame(parent, style='Header.TFrame', padding=(20, 12))
+        header_frame.grid(row=0, column=0, sticky='ew', pady=(0, 10))
 
         # Title row
         title_row = ttk.Frame(header_frame, style='Header.TFrame')
-        title_row.pack(fill=tk.X, pady=(0, 12))
+        title_row.pack(fill=tk.X, pady=(0, 8))
         
         title_label = ttk.Label(title_row, text="🎥 ChessAssist Pro",
                                style='Header.TLabel')
@@ -413,8 +414,8 @@ class ViewerApp(tk.Tk):
 
     def _build_camera_controls(self, parent: ttk.Frame) -> None:
         """Build the clean camera controls panel"""
-        controls_frame = ttk.LabelFrame(parent, text="🎛️ Camera & Image Controls", padding=18)
-        controls_frame.grid(row=2, column=0, sticky='ew', pady=(0, 15))
+        controls_frame = ttk.LabelFrame(parent, text="🎛️ Camera & Image Controls", padding=12)
+        controls_frame.grid(row=2, column=0, sticky='ew', pady=(0, 10))
 
         # Create a grid layout for controls
         controls_container = ttk.Frame(controls_frame, style='Card.TFrame')
@@ -422,7 +423,7 @@ class ViewerApp(tk.Tk):
         
         # Camera selection section
         camera_frame = ttk.Frame(controls_container, style='Card.TFrame')
-        camera_frame.grid(row=0, column=0, columnspan=3, sticky='ew', pady=(0, 15))
+        camera_frame.grid(row=0, column=0, columnspan=6, sticky='ew', pady=(0, 10))
         
         ttk.Label(camera_frame, text="📷 Active Camera:", style='Control.TLabel').pack(side=tk.LEFT, padx=(5, 10))
         self.camera_var = tk.StringVar(value="Camera 1")
@@ -439,72 +440,90 @@ class ViewerApp(tk.Tk):
         # Row offset for remaining controls
         row_offset = 1
         
+        # LEFT COLUMN - CAMERA CONTROLS
         # Zoom control (for Android camera)
-        self._create_control_row(controls_container, "🔍 Zoom", row_offset, 1.0, 10.0, "1.0x", self._on_zoom_change)
+        self._create_control_row(controls_container, "🔍 Zoom", row_offset, 1.0, 10.0, "1.0x", self._on_zoom_change, column_offset=0)
 
         # Exposure control (for Android camera)
-        self._create_control_row(controls_container, "☀️ Exposure", row_offset + 1, -12, 12, "0", self._on_exposure_change)
+        self._create_control_row(controls_container, "☀️ Exposure", row_offset + 1, -12, 12, "0", self._on_exposure_change, column_offset=0)
 
         # Focus control (for Android camera)
-        self._create_control_row(controls_container, "🎯 Focus", row_offset + 2, 0.0, 1.0, "0.50", self._on_focus_change)
+        self._create_control_row(controls_container, "🎯 Focus", row_offset + 2, 0.0, 1.0, "0.50", self._on_focus_change, column_offset=0)
         
+        # RIGHT COLUMN - IMAGE PROCESSING CONTROLS
         # Brightness control (for desktop processing)
-        self._create_control_row(controls_container, "💡 Brightness", row_offset + 3, 0.0, 2.0, "1.00", self._on_brightness_change)
+        self._create_control_row(controls_container, "💡 Brightness", row_offset, 0.0, 2.0, "1.00", self._on_brightness_change, column_offset=3)
         
         # Contrast control (for desktop processing)
-        self._create_control_row(controls_container, "◐ Contrast", row_offset + 4, 0.0, 2.0, "1.00", self._on_contrast_change)
+        self._create_control_row(controls_container, "◐ Contrast", row_offset + 1, 0.0, 2.0, "1.00", self._on_contrast_change, column_offset=3)
         
         # Saturation control (for desktop processing)
-        self._create_control_row(controls_container, "🎨 Saturation", row_offset + 5, 0.0, 2.0, "1.00", self._on_saturation_change)
+        self._create_control_row(controls_container, "🎨 Saturation", row_offset + 2, 0.0, 2.0, "1.00", self._on_saturation_change, column_offset=3)
+        
+        # Flash and Rotation controls
+        extras_frame = ttk.Frame(controls_container, style='Card.TFrame')
+        extras_frame.grid(row=row_offset + 3, column=0, columnspan=6, sticky='ew', pady=(8, 5))
+        
+        # Flash control (left side)
+        self.flash_var = tk.BooleanVar(value=False)
+        flash_check = ttk.Checkbutton(extras_frame, text="⚡ Flash", variable=self.flash_var,
+                                     command=self._on_flash_change)
+        flash_check.pack(side=tk.LEFT, padx=(5, 30))
         
         # Filter selection
-        filter_frame = ttk.Frame(controls_container, style='Card.TFrame')
-        filter_frame.grid(row=row_offset + 6, column=0, columnspan=3, sticky='ew', pady=(15, 5))
-        
-        ttk.Label(filter_frame, text="🎭 Filter:", style='Control.TLabel').pack(side=tk.LEFT, padx=(5, 10))
+        ttk.Label(extras_frame, text="🎭 Filter:", style='Control.TLabel').pack(side=tk.LEFT, padx=(5, 10))
         self.filter_var = tk.StringVar(value="none")
-        filter_dropdown = ttk.Combobox(filter_frame, textvariable=self.filter_var,
+        filter_dropdown = ttk.Combobox(extras_frame, textvariable=self.filter_var,
                                        values=["none", "grayscale", "blur", "sharpen", "edge_enhance"],
-                                       state='readonly', width=15)
-        filter_dropdown.pack(side=tk.LEFT)
+                                       state='readonly', width=12)
+        filter_dropdown.pack(side=tk.LEFT, padx=(0, 30))
         filter_dropdown.bind('<<ComboboxSelected>>', lambda e: self._on_filter_change())
+        
+        # Rotation control
+        ttk.Label(extras_frame, text="🔄 Rotation:", style='Control.TLabel').pack(side=tk.LEFT, padx=(5, 10))
+        self.rotation_var = tk.StringVar(value="0°")
+        rotation_dropdown = ttk.Combobox(extras_frame, textvariable=self.rotation_var,
+                                        values=["0°", "90°", "180°", "270°"],
+                                        state='readonly', width=8)
+        rotation_dropdown.pack(side=tk.LEFT)
+        rotation_dropdown.bind('<<ComboboxSelected>>', lambda e: self._on_rotation_change())
 
         # Reset button with better styling
         button_frame = ttk.Frame(controls_container, style='Card.TFrame')
-        button_frame.grid(row=row_offset + 7, column=0, columnspan=3, pady=(18, 5), sticky='ew')
+        button_frame.grid(row=row_offset + 4, column=0, columnspan=6, pady=(12, 5), sticky='ew')
 
         reset_btn = ttk.Button(button_frame, text="🔄 Reset All Controls",
                               command=self._reset_controls, style='Reset.TButton')
         reset_btn.pack(anchor=tk.CENTER)
 
     def _create_control_row(self, parent: ttk.Frame, label_text: str, row: int, 
-                           min_val: float, max_val: float, default_label: str, callback) -> None:
+                           min_val: float, max_val: float, default_label: str, callback, column_offset: int = 0) -> None:
         """Create a clean control row with label, slider, and value display"""
         # Label with clean styling
-        label = ttk.Label(parent, text=label_text, style='Control.TLabel', width=13)
-        label.grid(row=row, column=0, sticky='w', padx=(5, 15), pady=10)
+        label = ttk.Label(parent, text=label_text, style='Control.TLabel', width=12)
+        label.grid(row=row, column=column_offset, sticky='w', padx=(5, 10), pady=6)
 
         # Slider frame
         slider_frame = ttk.Frame(parent, style='Card.TFrame')
-        slider_frame.grid(row=row, column=1, sticky='ew', padx=8, pady=10)
+        slider_frame.grid(row=row, column=column_offset + 1, sticky='ew', padx=5, pady=6)
 
         # Slider
         if isinstance(min_val, int) and isinstance(max_val, int):
             var = tk.IntVar()
             scale = ttk.Scale(slider_frame, from_=min_val, to=max_val, variable=var,
                              orient=tk.HORIZONTAL, command=callback, style='Horizontal.TScale',
-                             length=300)
+                             length=150)
         else:
             var = tk.DoubleVar()
             scale = ttk.Scale(slider_frame, from_=min_val, to=max_val, variable=var,
                              orient=tk.HORIZONTAL, command=callback, style='Horizontal.TScale',
-                             length=300)
+                             length=150)
 
         scale.pack(fill=tk.X, expand=True)
 
         # Value label with modern styling
-        value_label = ttk.Label(parent, text=default_label, style='ControlValue.TLabel', width=7)
-        value_label.grid(row=row, column=2, sticky='e', padx=(15, 5), pady=10)
+        value_label = ttk.Label(parent, text=default_label, style='ControlValue.TLabel', width=6)
+        value_label.grid(row=row, column=column_offset + 2, sticky='e', padx=(10, 5), pady=6)
 
         # Store references
         attr_name = label_text.lower().split()[1] + '_var'
@@ -537,11 +556,12 @@ class ViewerApp(tk.Tk):
 
         # Configure grid weights
         parent.grid_columnconfigure(1, weight=1)
+        parent.grid_columnconfigure(4, weight=1)
 
     def _build_video_display(self, parent: ttk.Frame) -> None:
         """Build the clean video display area"""
-        video_frame = ttk.LabelFrame(parent, text="📺 Live Video Stream", padding=8)
-        video_frame.grid(row=1, column=0, sticky='nsew', pady=(0, 15))
+        video_frame = ttk.LabelFrame(parent, text="📺 Live Video Stream", padding=4)
+        video_frame.grid(row=1, column=0, sticky='nsew', pady=(0, 10))
 
         # Video display area with clean design
         self.video_label = tk.Label(video_frame, text="Waiting for video stream...",
@@ -552,7 +572,7 @@ class ViewerApp(tk.Tk):
 
     def _build_status_bar(self, parent: ttk.Frame) -> None:
         """Build the clean status bar with connection status"""
-        status_frame = ttk.Frame(parent, style='Card.TFrame', padding=(15, 12))
+        status_frame = ttk.Frame(parent, style='Card.TFrame', padding=(12, 8))
         status_frame.grid(row=3, column=0, sticky='ew')
 
         # Left side - Status
@@ -624,8 +644,8 @@ class ViewerApp(tk.Tk):
             return
 
     def _compute_display_size(self, image_size: tuple[int, int]) -> tuple[int, int]:
-        label_width = max(self.video_label.winfo_width(), 320)
-        label_height = max(self.video_label.winfo_height(), 240)
+        label_width = max(self.video_label.winfo_width(), 640)
+        label_height = max(self.video_label.winfo_height(), 480)
         
         # Cache display size if label size hasn't changed
         current_label_size = (label_width, label_height)
@@ -670,6 +690,14 @@ class ViewerApp(tk.Tk):
                 image = image.filter(ImageFilter.SHARPEN)
             elif self.image_settings.filter_type == "edge_enhance":
                 image = image.filter(ImageFilter.EDGE_ENHANCE)
+            
+            # Apply rotation (after other filters)
+            if self.image_settings.rotation == 90:
+                image = image.rotate(-90, expand=True)
+            elif self.image_settings.rotation == 180:
+                image = image.rotate(-180, expand=True)
+            elif self.image_settings.rotation == 270:
+                image = image.rotate(-270, expand=True)
             
             return image
         except Exception:
@@ -739,6 +767,16 @@ class ViewerApp(tk.Tk):
     
     def _on_filter_change(self) -> None:
         self.image_settings.filter_type = self.filter_var.get()
+    
+    def _on_flash_change(self) -> None:
+        flash_state = "ON" if self.flash_var.get() else "OFF"
+        if self.active_camera_id and self.active_camera_id in self.cameras:
+            self.cameras[self.active_camera_id]['server'].send_control_command(f"FLASH:{flash_state}")
+    
+    def _on_rotation_change(self) -> None:
+        rotation_str = self.rotation_var.get()
+        rotation_value = int(rotation_str.replace('°', ''))
+        self.image_settings.rotation = rotation_value
     
     def _show_add_camera_dialog(self) -> None:
         """Show dialog to add a new camera"""
@@ -821,6 +859,8 @@ class ViewerApp(tk.Tk):
         self.contrast_var.set(1.0)
         self.saturation_var.set(1.0)
         self.filter_var.set("none")
+        self.flash_var.set(False)
+        self.rotation_var.set("0°")
         
         self.zoom_label.config(text="1.0x")
         self.exposure_label.config(text="0")
@@ -833,12 +873,14 @@ class ViewerApp(tk.Tk):
         self.image_settings.contrast = 1.0
         self.image_settings.saturation = 1.0
         self.image_settings.filter_type = "none"
+        self.image_settings.rotation = 0
         
         if self.active_camera_id and self.active_camera_id in self.cameras:
             server = self.cameras[self.active_camera_id]['server']
             server.send_control_command("ZOOM:1.0")
             server.send_control_command("EXPOSURE:0")
             server.send_control_command("FOCUS:0.5")
+            server.send_control_command("FLASH:OFF")
 
 
 def get_local_ip_addresses() -> list[str]:
