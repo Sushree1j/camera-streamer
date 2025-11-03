@@ -18,6 +18,10 @@ try:
 except AttributeError:  # Pillow < 9.1 fallback
     RESAMPLE_LANCZOS = Image.LANCZOS
 
+# Video display constants
+MIN_VIDEO_WIDTH = 640
+MIN_VIDEO_HEIGHT = 480
+
 
 class ToolTip:
     """Simple tooltip class for Tkinter widgets"""
@@ -644,8 +648,8 @@ class ViewerApp(tk.Tk):
             return
 
     def _compute_display_size(self, image_size: tuple[int, int]) -> tuple[int, int]:
-        label_width = max(self.video_label.winfo_width(), 640)
-        label_height = max(self.video_label.winfo_height(), 480)
+        label_width = max(self.video_label.winfo_width(), MIN_VIDEO_WIDTH)
+        label_height = max(self.video_label.winfo_height(), MIN_VIDEO_HEIGHT)
         
         # Cache display size if label size hasn't changed
         current_label_size = (label_width, label_height)
@@ -692,6 +696,9 @@ class ViewerApp(tk.Tk):
                 image = image.filter(ImageFilter.EDGE_ENHANCE)
             
             # Apply rotation (after other filters)
+            # Note: User selects rotation in degrees clockwise (90° = 90° to the right)
+            # PIL's rotate() uses counter-clockwise for positive angles, so we negate
+            # to achieve the expected clockwise rotation
             if self.image_settings.rotation == 90:
                 image = image.rotate(-90, expand=True)
             elif self.image_settings.rotation == 180:
