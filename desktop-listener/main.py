@@ -696,9 +696,9 @@ class ViewerApp(tk.Tk):
                 image = image.filter(ImageFilter.EDGE_ENHANCE)
             
             # Apply rotation (after other filters)
-            # Note: User selects rotation in degrees clockwise (90° = 90° to the right)
+            # Note: User selects clockwise rotation (90° rotates image 90° to the right)
             # PIL's rotate() uses counter-clockwise for positive angles, so we negate
-            # to achieve the expected clockwise rotation
+            # the value to achieve the expected clockwise rotation
             if self.image_settings.rotation != 0:
                 image = image.rotate(-self.image_settings.rotation, expand=True)
             
@@ -781,9 +781,9 @@ class ViewerApp(tk.Tk):
         try:
             rotation_value = int(rotation_str.replace('°', ''))
             self.image_settings.rotation = rotation_value
-        except (ValueError, AttributeError) as e:
+        except (ValueError, AttributeError):
             # If parsing fails, default to 0 (no rotation)
-            print(f"Warning: Invalid rotation value '{rotation_str}', defaulting to 0°")
+            print("Warning: Invalid rotation value, defaulting to 0°")
             self.image_settings.rotation = 0
             self.rotation_var.set("0°")
     
