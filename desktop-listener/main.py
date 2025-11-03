@@ -699,12 +699,8 @@ class ViewerApp(tk.Tk):
             # Note: User selects rotation in degrees clockwise (90° = 90° to the right)
             # PIL's rotate() uses counter-clockwise for positive angles, so we negate
             # to achieve the expected clockwise rotation
-            if self.image_settings.rotation == 90:
-                image = image.rotate(-90, expand=True)
-            elif self.image_settings.rotation == 180:
-                image = image.rotate(-180, expand=True)
-            elif self.image_settings.rotation == 270:
-                image = image.rotate(-270, expand=True)
+            if self.image_settings.rotation != 0:
+                image = image.rotate(-self.image_settings.rotation, expand=True)
             
             return image
         except Exception:
@@ -782,8 +778,14 @@ class ViewerApp(tk.Tk):
     
     def _on_rotation_change(self) -> None:
         rotation_str = self.rotation_var.get()
-        rotation_value = int(rotation_str.replace('°', ''))
-        self.image_settings.rotation = rotation_value
+        try:
+            rotation_value = int(rotation_str.replace('°', ''))
+            self.image_settings.rotation = rotation_value
+        except (ValueError, AttributeError) as e:
+            # If parsing fails, default to 0 (no rotation)
+            print(f"Warning: Invalid rotation value '{rotation_str}', defaulting to 0°")
+            self.image_settings.rotation = 0
+            self.rotation_var.set("0°")
     
     def _show_add_camera_dialog(self) -> None:
         """Show dialog to add a new camera"""
