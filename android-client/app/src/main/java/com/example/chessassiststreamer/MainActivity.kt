@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resolutionSpinner: MaterialAutoCompleteTextView
     private lateinit var qualitySpinner: MaterialAutoCompleteTextView
     private lateinit var cameraNameEditText: TextInputEditText
+    private lateinit var connectionModeSpinner: MaterialAutoCompleteTextView
+    private lateinit var usbInfoCard: com.google.android.material.card.MaterialCardView
 
     private val cameraThread = HandlerThread("CameraThread")
     private lateinit var cameraHandler: Handler
@@ -88,6 +90,9 @@ class MainActivity : AppCompatActivity() {
     private var currentFocus: Float = 0.5f
     private var controlListenerJob: Job? = null
     private var captureRequestBuilder: CaptureRequest.Builder? = null
+    
+    // Connection mode: 0 = WiFi, 1 = USB
+    private var connectionMode: Int = 0
 
     private val fpsFormat = DecimalFormat("0.0")
     private var frameCounter = 0
@@ -141,6 +146,8 @@ class MainActivity : AppCompatActivity() {
         resolutionSpinner = findViewById(R.id.resolutionSpinner)
         qualitySpinner = findViewById(R.id.qualitySpinner)
         cameraNameEditText = findViewById(R.id.cameraNameEditText)
+        connectionModeSpinner = findViewById(R.id.connectionModeSpinner)
+        usbInfoCard = findViewById(R.id.usbInfoCard)
     }
 
     private fun configureUi() {
@@ -188,6 +195,15 @@ class MainActivity : AppCompatActivity() {
                 else -> 95  // High Quality
             }
         }
+        
+        // Connection mode spinner setup
+        val connectionModeItems = resources.getStringArray(R.array.connection_mode_labels)
+        connectionModeSpinner.setSimpleItems(connectionModeItems)
+        connectionModeSpinner.setText(connectionModeItems[0], false)
+        connectionModeSpinner.setOnItemClickListener { _, _, position, _ ->
+            connectionMode = position
+            updateConnectionModeUI()
+        }
 
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
@@ -213,6 +229,24 @@ class MainActivity : AppCompatActivity() {
     private fun populateAutoFields() {
         ipEditText.setText(getLocalIpAddress() ?: "")
         portEditText.setText("5000")
+        updateConnectionModeUI()
+    }
+    
+    private fun updateConnectionModeUI() {
+        if (connectionMode == 1) {
+            // USB mode
+            usbInfoCard.visibility = android.view.View.VISIBLE
+            ipEditText.setText("127.0.0.1")
+            ipEditText.isEnabled = false
+            portEditText.setText("5000")
+        } else {
+            // WiFi mode
+            usbInfoCard.visibility = android.view.View.GONE
+            ipEditText.isEnabled = true
+            if (ipEditText.text?.toString() == "127.0.0.1") {
+                ipEditText.setText(getLocalIpAddress() ?: "")
+            }
+        }
     }
 
     private fun ensurePermissionsAndStart() {
@@ -299,11 +333,13 @@ class MainActivity : AppCompatActivity() {
         try {
             val cameraName = cameraNameEditText.text?.toString() ?: "Camera"
             val cameraFacing = if (frontCameraButton.isChecked) "front" else "rear"
+            val connectionType = if (connectionMode == 1) "usb" else "wifi"
             val metadata = JSONObject().apply {
                 put("camera_id", cameraName)
                 put("camera_facing", cameraFacing)
                 put("resolution", "${selectedSize.width}x${selectedSize.height}")
                 put("quality", jpegQuality)
+                put("connection_type", connectionType)
             }
             
             val metadataBytes = metadata.toString().toByteArray(Charsets.UTF_8)

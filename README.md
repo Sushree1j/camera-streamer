@@ -6,6 +6,7 @@ A modern, feature-rich Android application that streams your device's camera fee
 
 ### 🎥 Core Streaming
 - **Real-time Camera Streaming**: Stream live camera feed from your Android device
+- **Multiple Connection Methods**: WiFi or USB connection options
 - **Multiple Camera Support**: Connect and stream from multiple Android devices simultaneously
 - **Dual Camera Support**: Choose between front and rear cameras
 - **Multiple Resolution Options**: Low (640x480), Medium (1280x720), High (1920x1080)
@@ -101,18 +102,65 @@ This project consists of two main components:
 
 ## 📱 Usage
 
-### Android App Setup
+### WiFi Connection
 
 1. **Launch the app** on your Android device
-2. **Configure camera:**
+2. **Select WiFi mode** in Connection Mode dropdown
+3. **Configure camera:**
    - Give your camera a custom name (e.g., "Front Camera", "Rear Camera")
    - Select camera facing (front or rear)
    - Choose resolution based on your needs (Low/Medium/High)
    - Select quality setting (Battery Saver/Balanced/High Quality)
-3. **Enter connection details:**
+4. **Enter connection details:**
    - IP address of your desktop computer running the listener
    - Port number (default: 5000)
-4. **Start streaming** by tapping the "Start Streaming" button
+5. **Start streaming** by tapping the "Start Streaming" button
+
+### USB Connection (Android Only)
+
+For smoother, more reliable streaming when both devices are physically connected:
+
+1. **Enable USB Debugging** on your Android device:
+   - Go to Settings → About Phone
+   - Tap "Build Number" 7 times to enable Developer Options
+   - Go to Settings → Developer Options
+   - Enable "USB Debugging"
+
+2. **Connect your phone to PC** via USB cable
+
+3. **Set up ADB port forwarding** on your PC:
+   ```bash
+   # Install ADB if not already installed
+   # Windows: Download Android SDK Platform Tools
+   # Linux: sudo apt-get install adb
+   # Mac: brew install android-platform-tools
+   
+   # Set up port forwarding
+   adb forward tcp:5000 tcp:5000
+   ```
+
+4. **Start the desktop listener** on your computer:
+   ```bash
+   cd desktop-listener
+   python main.py
+   ```
+
+5. **Configure the Android app**:
+   - Launch the app
+   - Select "🔌 USB" in Connection Mode dropdown
+   - The IP will automatically be set to 127.0.0.1 (localhost)
+   - Keep port as 5000
+   - Configure camera settings as needed
+   - Tap "Start Streaming"
+
+**Advantages of USB Connection:**
+- No WiFi network required
+- More stable connection
+- Lower latency
+- Better for locations with poor WiFi
+- Ideal for live presentations or monitoring
+
+### Android App Setup
 
 ### Desktop Listener Features
 
@@ -138,9 +186,15 @@ This project consists of two main components:
 
 ## 🔧 Configuration
 
+### Connection Mode
+- **WiFi Mode**: Connect over local network (both devices must be on same network)
+- **USB Mode**: Connect via USB cable with ADB port forwarding (requires USB debugging enabled)
+
 ### Network Settings
-- **IP Address**: Enter the IP address of the machine running the desktop listener
-- **Port**: Specify the port number for streaming (must match desktop listener)
+- **IP Address**: 
+  - WiFi mode: Enter the IP address of the machine running the desktop listener
+  - USB mode: Automatically set to 127.0.0.1 (localhost)
+- **Port**: Specify the port number for streaming (must match desktop listener, default: 5000)
 
 ### Camera Settings
 - **Camera Selection**: Toggle between front and rear cameras
@@ -266,6 +320,44 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Bug Reports**: [GitHub Issues](https://github.com/Sushree1j/camera-streamer/issues)
 - **Feature Requests**: [GitHub Issues](https://github.com/Sushree1j/camera-streamer/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Sushree1j/camera-streamer/discussions)
+
+## 🔧 Troubleshooting
+
+### USB Connection Issues
+
+1. **"Connection failed" error in USB mode:**
+   - Verify USB debugging is enabled on your Android device
+   - Check that ADB is properly installed: `adb version`
+   - Confirm device is connected: `adb devices`
+   - Ensure port forwarding is set up: `adb forward tcp:5000 tcp:5000`
+   - Check that desktop listener is running before starting Android app
+
+2. **ADB not recognized:**
+   - Windows: Add Android SDK platform-tools to your PATH
+   - Linux: Install via package manager: `sudo apt-get install adb`
+   - Mac: Install via Homebrew: `brew install android-platform-tools`
+
+3. **Device unauthorized in adb devices:**
+   - A popup should appear on your Android device
+   - Tap "Allow" to authorize USB debugging
+   - If popup doesn't appear, try: `adb kill-server` then `adb start-server`
+
+4. **Stream works on WiFi but not USB:**
+   - Restart ADB: `adb kill-server && adb start-server`
+   - Remove and re-setup port forwarding: `adb forward --remove-all` then `adb forward tcp:5000 tcp:5000`
+   - Check firewall settings on desktop computer
+
+### WiFi Connection Issues
+
+1. **Cannot connect to desktop:**
+   - Ensure both devices are on the same network
+   - Check desktop firewall allows incoming connections on the specified port
+   - Verify the IP address is correct (it should be desktop's local IP)
+
+2. **Stream is laggy:**
+   - Try lower resolution or quality settings
+   - Check WiFi signal strength
+   - Consider using USB mode for better performance
 
 ## 🙏 Acknowledgments
 
