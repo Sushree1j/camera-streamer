@@ -12,6 +12,9 @@
     <string name="connection_settings">Connection Settings</string>
     <string name="add_camera">Add Camera</string>
     <string name="camera_name">Camera Name</string>
+    <string name="connection_mode">Connection Mode</string>
+    <string name="usb_info">USB mode requires ADB setup. See instructions below.</string>
+    <string name="usb_instructions">USB Connection Setup:\n1. Enable USB Debugging on your phone\n2. Connect phone to PC via USB\n3. Run: adb forward tcp:5000 tcp:5000\n4. Start streaming</string>
     <string-array name="resolution_labels">
         <item>📱 Low (640x480)</item>
         <item>📺 Medium (1280x720)</item>
@@ -21,5 +24,9 @@
         <item>🔋 Battery Saver (60%)</item>
         <item>⚡ Balanced (80%)</item>
         <item>💎 High Quality (95%)</item>
+    </string-array>
+    <string-array name="connection_mode_labels">
+        <item>📡 WiFi</item>
+        <item>🔌 USB</item>
     </string-array>
 </resources>
