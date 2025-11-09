@@ -77,6 +77,7 @@ animator mtrl_fab_hide_motion_spec
 animator mtrl_fab_show_motion_spec
 animator mtrl_fab_transformation_sheet_collapse_spec
 animator mtrl_fab_transformation_sheet_expand_spec
+array connection_mode_labels
 array quality_labels
 array resolution_labels
 attr SharedValue
@@ -3246,6 +3247,8 @@ id compatible
 id compress
 id confirm_button
 id connectionCard
+id connectionModeInputLayout
+id connectionModeSpinner
 id constraint
 id container
 id content
@@ -3626,6 +3629,7 @@ id unchecked
 id uniform
 id unlabeled
 id up
+id usbInfoCard
 id useLogo
 id vertical_only
 id view_offset_helper
@@ -3890,6 +3894,7 @@ string character_counter_content_description
 string character_counter_overflowed_content_description
 string character_counter_pattern
 string clear_text_end_icon_content_description
+string connection_mode
 string connection_settings
 string error_a11y_label
 string error_icon_content_description
@@ -4019,6 +4024,8 @@ string start
 string status_bar_notification_info_overflow
 string stop
 string stream_quality
+string usb_info
+string usb_instructions
 style AlertDialog_AppCompat
 style AlertDialog_AppCompat_Light
 style Animation_AppCompat_Dialog
