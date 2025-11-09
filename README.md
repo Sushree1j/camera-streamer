@@ -120,6 +120,10 @@ This project consists of two main components:
 
 For smoother, more reliable streaming when both devices are physically connected:
 
+**📖 For detailed USB setup instructions, see [USB_SETUP_GUIDE.md](USB_SETUP_GUIDE.md)**
+
+**Quick Setup:**
+
 1. **Enable USB Debugging** on your Android device:
    - Go to Settings → About Phone
    - Tap "Build Number" 7 times to enable Developer Options
